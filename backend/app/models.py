@@ -15,7 +15,7 @@ class Project(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     color: Mapped[str] = mapped_column(String(20), default="#7c6cf2")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
-    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
+    tasks = relationship("Task", back_populates="project")
 
 
 class Task(Base):
