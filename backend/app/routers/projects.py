@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from ..database import get_db
-from ..models import Project
+from ..models import Project, Task
 from ..schemas import ProjectCreate, ProjectOut
 
 router = APIRouter(prefix="/api/projects", tags=["projects"])
@@ -23,5 +23,9 @@ def delete_project(project_id: int, db: Session = Depends(get_db)):
     project = db.get(Project, project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    # Keep tasks when a project is removed; they simply become unassigned.
+    db.query(Task).filter(Task.project_id == project_id).update(
+        {Task.project_id: None}, synchronize_session=False
+    )
     db.delete(project)
     db.commit()
