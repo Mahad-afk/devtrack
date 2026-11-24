@@ -72,6 +72,31 @@ def test_rejects_task_for_missing_project(client):
     assert response.json()["detail"] == "Project not found"
 
 
+def test_rejects_assigning_task_to_missing_project(client):
+    task = client.post("/api/tasks", json={"title": "Keep project-free"}).json()
+
+    response = client.patch(
+        f"/api/tasks/{task['id']}",
+        json={"project_id": 9999},
+    )
+
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Project not found"
+    unchanged = client.get("/api/tasks").json()[0]
+    assert unchanged["project_id"] is None
+
+
+def test_rejects_null_for_required_task_update_fields(client):
+    task = client.post("/api/tasks", json={"title": "A valid task"}).json()
+
+    for field in ("title", "status", "priority"):
+        response = client.patch(
+            f"/api/tasks/{task['id']}",
+            json={field: None},
+        )
+        assert response.status_code == 422
+
+
 def test_validates_task_fields(client):
     response = client.post("/api/tasks", json={"title": "", "priority": "urgent"})
     assert response.status_code == 422
