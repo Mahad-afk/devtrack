@@ -5,15 +5,18 @@ from pydantic import BaseModel, ConfigDict, Field
 TaskStatus = Literal["todo", "in_progress", "done"]
 Priority = Literal["low", "medium", "high"]
 
+
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     description: str = ""
     color: str = "#7c6cf2"
 
+
 class ProjectOut(ProjectCreate):
     id: int
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
 
 class TaskCreate(BaseModel):
     title: str = Field(min_length=1, max_length=160)
@@ -23,13 +26,17 @@ class TaskCreate(BaseModel):
     due_date: str | None = None
     project_id: int | None = None
 
+
 class TaskUpdate(BaseModel):
-    title: str | None = Field(default=None, min_length=1, max_length=160)
+    # These fields may be omitted, but explicit null values must be rejected.
+    # The database columns are non-nullable.
+    title: str = Field(default=None, min_length=1, max_length=160)
     description: str | None = None
-    status: TaskStatus | None = None
-    priority: Priority | None = None
+    status: TaskStatus = Field(default=None)
+    priority: Priority = Field(default=None)
     due_date: str | None = None
     project_id: int | None = None
+
 
 class TaskOut(TaskCreate):
     id: int
